@@ -73,6 +73,25 @@
         ]]> </metadata>
     </model>
 
+	<data-role name="StocksReader">
+		<description>Allow all, except Delete</description>
 
+		<permission>
+			<resource-name>Stocks.Stock</resource-name>
+			<allow-create>true</allow-create>
+			<allow-read>true</allow-read>
+			<allow-update>true</allow-update>
+		</permission>
+
+		<permission>
+			<resource-name>Stocks.StockPrices</resource-name>
+			<allow-create>true</allow-create>
+			<allow-read>true</allow-read>
+			<allow-update>true</allow-update>
+		</permission>
+
+		<mapped-role-name>user</mapped-role-name>
+
+	</data-role>
 
 </vdb>
