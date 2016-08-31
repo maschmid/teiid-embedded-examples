@@ -5,7 +5,14 @@ import static org.teiid.example.JDBCUtils.executeQuery;
 
 import org.h2.constant.SysProperties;
 import org.h2.tools.RunScript;
+import org.teiid.api.exception.query.QueryValidatorException;
+import org.teiid.core.TeiidComponentException;
+import org.teiid.dqp.internal.process.AuthorizationValidator;
 import org.teiid.jdbc.TeiidSQLException;
+import org.teiid.metadata.AbstractMetadataRecord;
+import org.teiid.query.metadata.QueryMetadataInterface;
+import org.teiid.query.sql.lang.Command;
+import org.teiid.query.util.CommandContext;
 import org.teiid.resource.adapter.file.FileManagedConnectionFactory;
 import org.teiid.runtime.EmbeddedConfiguration;
 import org.teiid.runtime.EmbeddedServer;
@@ -15,7 +22,10 @@ import org.teiid.translator.jdbc.h2.H2ExecutionFactory;
 import javax.sql.DataSource;
 
 import java.io.InputStreamReader;
+import java.security.Principal;
+import java.security.acl.Group;
 import java.sql.Connection;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -49,6 +59,43 @@ public static void main(String[] args) throws Exception {
         config.setTransactionManager(EmbeddedHelper.getTransactionManager());
         config.setSecurityDomain("teiid-security-custom");
         config.setSecurityHelper(EmbeddedHelper.getSecurityHelper());
+
+		config.setAuthorizationValidator(new AuthorizationValidator() {
+			@Override
+			public boolean validate(String[] strings, Command command, QueryMetadataInterface queryMetadataInterface, CommandContext commandContext, CommandType commandType) throws QueryValidatorException, TeiidComponentException {
+				System.out.println("XXX validate:  " + strings + ", command = " + command + ", username = " + commandContext.getUserName());
+
+				// user has to have "select" role to select
+				if (command.getType() == Command.TYPE_QUERY) {
+					if (!commandContext.getSubject().getPrincipals(Group.class).stream()
+							.filter(p -> "roles".equalsIgnoreCase(p.getName())).anyMatch(p ->
+							Collections.list(p.members()).stream().anyMatch(m -> "select".equals(m.getName())))) {
+								throw new QueryValidatorException("User " + commandContext.getUserName() + " does not have 'select' role");
+					}
+				}
+
+				// true if the USER command was modified, or if the non-USER command should be modified.
+				return false;
+			}
+
+			@Override
+			public boolean hasRole(String s, CommandContext commandContext) {
+				// TODO
+
+				System.out.println("XXX " + commandContext.getUserName() + " has role " + s);
+
+				return true;
+			}
+
+			@Override
+			public boolean isAccessible(AbstractMetadataRecord abstractMetadataRecord, CommandContext commandContext) {
+				// TODO
+
+				System.out.println("XXX is accessible ");
+				return true;
+			}
+		});
+
         server.start(config);
                 
         

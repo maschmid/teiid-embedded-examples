@@ -2,9 +2,9 @@ package org.foobar.jaas;
 
 public class MyExistingAuthorizationSystem {
 	String[] generateRolesForAUser(String username) {
-		// let's say only "testUser is "user"
+		// let's say only "testUser" has "select" role
 		if ("testUser".equals(username)) {
-			return new String[] {"user"};
+			return new String[] {"select"};
 		}
 
 		return new String[] {};
