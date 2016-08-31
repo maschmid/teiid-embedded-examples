@@ -110,7 +110,7 @@ public static void main(String[] args) throws Exception {
 
 		executeQuery(c, "select * from Stock");
 
-		System.out.println("select as kylin should fail (not a user):");
+		System.out.println("select as kylin should fail (doesn't have 'select' role):");
 
 		info.put("user", "kylin");
 
